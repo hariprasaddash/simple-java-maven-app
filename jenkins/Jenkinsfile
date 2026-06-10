@@ -1,30 +1,42 @@
 pipeline {
     agent any
-    tools{
-        maven 'Maven-3'
+
+    tools {
+        maven 'maven'
     }
-    options {
-        skipStagesAfterUnstable()
-    }
+
     stages {
+
         stage('Build') {
             steps {
                 sh 'mvn -B -DskipTests clean package'
             }
         }
+
+
         stage('Test') {
             steps {
                 sh 'mvn test'
             }
+
             post {
                 always {
                     junit 'target/surefire-reports/*.xml'
                 }
             }
         }
-        stage('Deliver') { 
+
+
+        stage('Docker Build') {
             steps {
-                sh './jenkins/scripts/deliver.sh' 
+                sh 'docker build -t hari-java-app:v2 .'
+            }
+        }
+
+
+        stage('Docker Test Run') {
+            steps {
+                sh 'docker run --rm hari-java-app:v2'
             }
         }
     }
